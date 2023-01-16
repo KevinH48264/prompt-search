@@ -249,12 +249,18 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
         fetch(`http://localhost:9090/instance/getFiltered?search=${searchQuery}&limit=${additionalPromptsNeeded}`)
         .then((res) => res.json())
             .then((DBprompts) => {
-              console.log("DBPrompts: ", DBprompts)
-              // split res accordingly
-
+              // getting responses from DB
               for (const DBprompt of DBprompts.instance) {
+                var DBpromptText = DBprompt.prompt
+                for (const word of promptTextList) {
+                  if (word && word != " ") {
+                    var wordIdx = DBpromptText.indexOf(word)
+                    // add bold
+                    DBpromptText = DBpromptText.substring(0, wordIdx)+ "<b>"+ DBpromptText.substring(wordIdx, wordIdx + word.length) + "</b>" + DBpromptText.substring(wordIdx + word.length);
+                  }
+                }
                 var additionalDBprompt = [
-                  DBprompt.prompt, {
+                  DBpromptText, {
                     "answer": DBprompt.answer,
                     "usageCount": DBprompt.usageCount,
                   }
