@@ -44,8 +44,8 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
     // TODO: stop adding once you have 8
     
     // sort
-    Object.entries(promptDict).sort((a, b) => {
-      return a[1]['lastUsed'].valueOf() - b[1]['lastUsed'].valueOf()
+    var sortedPromptList = Object.entries(promptDict).sort((a, b) => {
+      return b[1]['lastUsed'].valueOf() - a[1]['lastUsed'].valueOf()
     })
 
     // stored: [write me an essay about pyramids of giza, ...]
@@ -54,7 +54,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
     // x = promptText (search)
 
     var counter = 0
-    for (var [key, value] of Object.entries(promptDict)) {
+    for (var [key, value] of sortedPromptList) {
       add = true
       for (const word of promptTextList) {
         if (word && word != " ") {
@@ -88,15 +88,42 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
         suggestionBox.style.opacity = "75%"
         suggestionBox.style.backgroundColor = "rgb(32,33,35)";
         suggestionBox.style.alignItems = "center"
-        
+
+        const iconDiv = document.createElement("div");
+        iconDiv.style.marginRight = "10px"
+
+        const textWrapperDiv = document.createElement("div");
+
+        const textDiv = document.createElement("div");
+        textDiv.style.color = "white";
+        textDiv.style.fontFamily = "sans-serif";
+        textDiv.style.overflowX = "hidden";
+        textDiv.style.overflowY = "scroll";
+        textDiv.style.maxHeight = "25px";
+
+        const answerDiv = document.createElement("div");
+        answerDiv.style.fontFamily = "sans-serif";
+        answerDiv.style.overflow = "hidden";
+        answerDiv.style.marginLeft = "15px";
+        answerDiv.style.overflowX = "hidden";
+        answerDiv.style.overflowY = "scroll";
+        answerDiv.style.maxHeight = "25px";
+        answerDiv.innerHTML = val.answer;
+
+        textDiv.innerHTML = prompt
+        iconDiv.innerHTML = "🕓"
 
         suggestionBox.onmouseover = function() {
           suggestionBox.style.cursor = "pointer"
           suggestionBox.style.opacity = "100%"
+          textDiv.style.maxHeight = "125px";
+          answerDiv.style.maxHeight = "125px";
         }
         suggestionBox.onmouseleave = function() {
           suggestionBox.style.backgroundColor = "rgb(32,33,35)";
           suggestionBox.style.opacity = "75%"
+          textDiv.style.maxHeight = "25px";
+          answerDiv.style.maxHeight = "25px";
         }
 
         suggestionBox.onclick = async function() {
@@ -105,31 +132,6 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
           reloadPopover(textbox, newText)
           suggestionBox.remove()
         }
-
-        const iconDiv = document.createElement("div");
-        iconDiv.style.marginRight = "10px"
-
-        const textWrapperDiv = document.createElement("div");
-
-
-        const textDiv = document.createElement("div");
-        textDiv.style.color = "white";
-        textDiv.style.fontFamily = "sans-serif";
-        textDiv.style.overflowX = "hidden";
-        textDiv.style.overflowY = "scroll";
-        textDiv.style.height = "25px";
-
-        const answerDiv = document.createElement("div");
-        answerDiv.style.fontFamily = "sans-serif";
-        answerDiv.style.overflow = "hidden";
-        answerDiv.style.marginLeft = "15px";
-        answerDiv.style.overflowX = "hidden";
-        answerDiv.style.overflowY = "scroll";
-        answerDiv.style.height = "25px";
-        answerDiv.innerHTML = val.answer;
-
-        textDiv.innerHTML = prompt
-        iconDiv.innerHTML = "🕓"
 
         textWrapperDiv.appendChild(textDiv)
         textWrapperDiv.appendChild(answerDiv)

@@ -73,7 +73,8 @@ export const addPromptSearchListener = () => {
       if (event.key == " ") {
         reloadPopover(item, promptText)
       }
-      if (event.key == "Backspace" && textareabox.value[textareabox.value.length - 1] == " ") {
+      // if you hit backspace on a space / delete a word or you cleared everything out
+      if (event.key == "Backspace" && (textareabox.value[textareabox.value.length - 1] == " " || textareabox.value.length == 1)) {
         reloadPopover(item, promptText)
       }
     }
@@ -85,54 +86,31 @@ export const addPromptSearchListener = () => {
       hidePopover()
     }
   });
-
-  // reload observer too
-  var textboxEl = document.getElementsByClassName('flex flex-col items-center text-sm h-full dark:bg-gray-800')[0] as Node
-  // var textboxEl = document.getElementsByClassName('flex flex-col items-center text-sm h-full dark:bg-gray-800')[0] as Node
-  // var textboxEl = document.getElementsByClassName('overflow-hidden w-full h-full relative')[0] as Node
-  restartLatestAnswerDiv(textboxEl as HTMLElement)
 } 
-
-export const restartLatestAnswerDiv = (checkElement : HTMLElement) => {
-  console.log("restarting")
-  // for tracking the answer
-
-  var temp = document.getElementById('__next') as HTMLElement
-  // at minimum, validate that document is wrong. VALIDATED THAT DOCUMENT IS INDEED NOT UPDATING
-  // validate: what mutations does it catch when you flip?
-  console.log("RESTART TEMP: ", temp.childNodes)
-
-  observer.observe(temp, config);
-}
 
 // save prompt
 export const savePrompt = async (promptText : string) => {
   console.log("saving prompt!")
 
-  var promptDict: { [key: string]: {
-    answer: string,
-    usageCount: number,
-    lastUsed: Date
-  }} = {};
-
-  checkFinishAnswering(promptDict, promptText)
-
   // Maybe create an add to storage and have it at the end of checkFinishAnswering()?
   // retrieving from local storage, can also just store as a variable here if we seriously cannot wait
   chrome.storage.local.get('prompts', function(result) {
+    var promptDict: { [key: string]: {
+      answer: string,
+      usageCount: number,
+      lastUsed: Date
+    }};
+
+    console.log("starting to listen for when it's done")
     if (result.prompts) {
+      console.log("was able to find result.prompts")
       promptDict = JSON.parse(result.prompts)
+    } else {
+      console.log("was NOT able to find result.prompts")
+      promptDict = {}
     }
-
-    // default addition to local storage
-    promptDict[promptText as string] = {
-      answer: "<p>Unavailable<p>",
-      usageCount: 1,
-      lastUsed: new Date()
-    }
-
-    chrome.storage.local.set({prompts: JSON.stringify(promptDict)})
-    // console.log("end prompts from default add: ", promptDict)
+    console.log("starting to listen for when it's done using this promptDict", promptDict)
+    checkFinishAnswering(promptDict, promptText)  
   });
 
   hidePopover()
@@ -143,6 +121,7 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
     usageCount: number,
     lastUsed: Date
   }}, promptText: string) => {
+    console.log("starting checkFinishingAnswering section")
   // for tracking when the button appears, signifying it is done answering
   var observerButton = new MutationObserver(function(mutations) {
     for (const mutation of mutations) {
@@ -155,13 +134,9 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
 
               // temporary because this seems to be the only element that updates properly
               var tempAnswerDivText = document.getElementById('__next') as HTMLElement
-              console.log(tempAnswerDivText)
               var tempMain = tempAnswerDivText.childNodes[1].childNodes[0].childNodes[0].childNodes[0]
-              console.log(tempMain)
               var tempDivCollection = tempMain.childNodes[0].childNodes[0].childNodes[0]
-              console.log(tempDivCollection)
               var latestAnswerDivTempCollection = tempDivCollection.childNodes
-              console.log(latestAnswerDivTempCollection)
               var latestAnswerDivTemp = latestAnswerDivTempCollection[tempDivCollection.childNodes.length - 2]
               var answerDivText = latestAnswerDivTemp?.childNodes[0].childNodes[1].childNodes[0].childNodes[0].childNodes[0] as HTMLElement
               // code to add the answer
@@ -174,6 +149,13 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
               console.log("added custom prompt, updated dict: ", promptDict)
             } catch {
               console.log("something like a div didn't have enough nodes or something")
+              promptDict[promptText as string] = {
+                answer: "<p>Unavailable<p>",
+                usageCount: 1,
+                lastUsed: new Date()
+              }
+          
+              chrome.storage.local.set({prompts: JSON.stringify(promptDict)})
             }
           }
         }
@@ -222,9 +204,6 @@ export const reloadPopover = (textbox : HTMLTextAreaElement, promptText : string
   var textboxMidWrapper = textbox.parentElement
   textboxWrapper?.insertBefore(p, textboxMidWrapper);
   p.style.visibility = "visible";
-
-  var textboxEl = textbox.ownerDocument.getElementsByClassName('flex flex-col items-center text-sm h-full dark:bg-gray-800')[0] as Node
-  restartLatestAnswerDiv(textboxEl as HTMLElement)
 
   if (document.activeElement === textbox) {
     showPopover()
