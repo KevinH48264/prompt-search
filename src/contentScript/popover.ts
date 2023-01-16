@@ -16,9 +16,155 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
   popover.style.display = "flex";
   popover.style.alignItems = "center";
   popover.style.justifyContent = "center";
-  popover.style.flexDirection = "column"
+  popover.style.flexDirection = "column-reverse"
   // popover.style.overflow = "hidden";
 
+  // Add toggles to menu
+  const toggleBox = document.createElement("div");
+  toggleBox.style.display = "flex"
+  toggleBox.style.width = "100%"
+  toggleBox.style.height = "50px";
+  toggleBox.style.padding = "10px"
+  toggleBox.style.opacity = "75%"
+  toggleBox.style.backgroundColor = "rgb(32,33,35)";
+  toggleBox.style.alignItems = "center"
+
+  chrome.storage.local.get('showDisplay', function(result) {
+    const toggleShowDisplay = document.createElement("button")
+    toggleShowDisplay.style.borderRadius = "1rem";
+    toggleShowDisplay.style.paddingLeft = "10px";
+    toggleShowDisplay.style.paddingRight = "10px";
+    toggleShowDisplay.style.height = "25px";
+    toggleShowDisplay.style.marginRight = "10px"
+
+    // show showDisplay value based on chrome storage
+    if ('showDisplay' in result) {
+      toggleShowDisplay.value = result.showDisplay
+    } else {
+      toggleShowDisplay.value = "on"
+      chrome.storage.local.set({showDisplay: "on"})
+    }
+    
+    if(toggleShowDisplay.value=="on"){
+      toggleShowDisplay.style.backgroundColor = "black";
+      toggleShowDisplay.style.color = "white";
+    } else if(toggleShowDisplay.value=="off"){
+      toggleShowDisplay.style.backgroundColor = "white";
+      toggleShowDisplay.style.color = "black";
+    }
+    toggleShowDisplay.innerHTML = "show display: " + toggleShowDisplay.value;
+
+    toggleShowDisplay.onclick = function() {
+      if(toggleShowDisplay.value=="on"){
+        toggleShowDisplay.value="off";
+        toggleShowDisplay.style.backgroundColor = "white";
+        toggleShowDisplay.style.color = "black";
+      } else if(toggleShowDisplay.value=="off"){
+        toggleShowDisplay.value="on";
+        toggleShowDisplay.style.backgroundColor = "black";
+        toggleShowDisplay.style.color = "white";
+      }
+      chrome.storage.local.set({showDisplay: toggleShowDisplay.value})
+      toggleShowDisplay.innerHTML = "show display: " + toggleShowDisplay.value;
+    }
+
+    toggleBox.appendChild(toggleShowDisplay)
+  })
+
+  chrome.storage.local.get('sharePrompts', function(result) {
+    const toggleSharePrompts = document.createElement("button")
+    toggleSharePrompts.style.borderRadius = "1rem";
+    toggleSharePrompts.style.paddingLeft = "10px";
+    toggleSharePrompts.style.paddingRight = "10px";
+    toggleSharePrompts.style.height = "25px";
+    toggleSharePrompts.style.marginRight = "10px"
+
+    // show showDisplay value based on chrome storage
+    var sharePromptsVal = "on"
+    if ('sharePrompts' in result && (result.sharePrompts == 'on' || result.sharePrompts == 'off')) {
+      sharePromptsVal = result.sharePrompts as string
+      console.log("there was in chrome local storage: ", result.sharePrompts)
+    } else {
+      sharePromptsVal = "on"
+      chrome.storage.local.set({sharePrompts: sharePromptsVal})
+      console.log('nope')
+    }
+    console.log("sharePromptsVal: ", sharePromptsVal)
+    
+    if (sharePromptsVal=="on"){
+      toggleSharePrompts.style.backgroundColor = "black";
+      toggleSharePrompts.style.color = "white";
+    } else if (sharePromptsVal=="off"){
+      toggleSharePrompts.style.backgroundColor = "white";
+      toggleSharePrompts.style.color = "black";
+    }
+    toggleSharePrompts.innerHTML = "save & share prompts: " + sharePromptsVal;
+    console.log("value: ", sharePromptsVal)
+    toggleSharePrompts.value = sharePromptsVal;
+
+    toggleSharePrompts.onclick = function() {
+      console.log("clicked! ", toggleSharePrompts.value)
+      if(toggleSharePrompts.value=="on"){
+        toggleSharePrompts.value="off";
+        toggleSharePrompts.style.backgroundColor = "white";
+        toggleSharePrompts.style.color = "black";
+        chrome.storage.local.set({ sharePrompts: "off"})
+      } else if(toggleSharePrompts.value=="off"){
+        toggleSharePrompts.value="on";
+        toggleSharePrompts.style.backgroundColor = "black";
+        toggleSharePrompts.style.color = "white";
+        chrome.storage.local.set({ sharePrompts: "on"})
+      }
+      toggleSharePrompts.innerHTML = "save & share prompts: " + toggleSharePrompts.value;
+    }
+
+    toggleBox.appendChild(toggleSharePrompts)
+  })
+
+  chrome.storage.local.get('shareResponses', function(result) {
+    const toggleShareResponses = document.createElement("button")
+    toggleShareResponses.style.borderRadius = "1rem";
+    toggleShareResponses.style.paddingLeft = "10px";
+    toggleShareResponses.style.paddingRight = "10px";
+    toggleShareResponses.style.height = "25px";
+    toggleShareResponses.style.marginRight = "10px"
+
+    // show showDisplay value based on chrome storage
+    if ('shareResponses' in result && result.shareResponses != 'undefined') {
+      toggleShareResponses.value = result.shareResponses
+    } else {
+      toggleShareResponses.value = "on"
+      chrome.storage.local.set({shareResponses: "on"})
+    }
+    
+    if(toggleShareResponses.value=="on"){
+      toggleShareResponses.style.backgroundColor = "black";
+      toggleShareResponses.style.color = "white";
+    } else if(toggleShareResponses.value=="off"){
+      toggleShareResponses.style.backgroundColor = "white";
+      toggleShareResponses.style.color = "black";
+    }
+    toggleShareResponses.innerHTML = "save & share results: " + toggleShareResponses.value;
+
+    toggleShareResponses.onclick = function() {
+      if(toggleShareResponses.value=="on"){
+        toggleShareResponses.value="off";
+        toggleShareResponses.style.backgroundColor = "white";
+        toggleShareResponses.style.color = "black";
+      } else if(toggleShareResponses.value=="off"){
+        toggleShareResponses.value="on";
+        toggleShareResponses.style.backgroundColor = "black";
+        toggleShareResponses.style.color = "white";
+      }
+      chrome.storage.local.set({shareResponses: toggleShareResponses.value})
+      toggleShareResponses.innerHTML = "save & share results: " + toggleShareResponses.value;
+    }
+
+    toggleBox.appendChild(toggleShareResponses)
+  })
+  
+  
+  popover.appendChild(toggleBox)
 
   // load in the suggestions
   chrome.storage.local.get('prompts', function(result) {
@@ -32,22 +178,18 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
       promptDict = JSON.parse(result.prompts)
     }
 
-    // console.log("IN GETPOPOVER, THIS IS PROMPTDICT: ", promptDict)
 
     var promptMatchList: any[] = []
     var promptTextList = promptText.split(' ')
-    // console.log("promptTextList", promptTextList)
     var add = true;
-
-    // get promptMatchList which is all the prompts that should be presented
-    // TODO: sort promptDict based on how recent the entry was
-    // TODO: stop adding once you have 8
     
     // sort, returns oldest --> newest
     var sortedPromptList = Object.entries(promptDict).sort((a, b) => {
       return  a[1]['lastUsed'].valueOf() - b[1]['lastUsed'].valueOf()
     })
 
+    // return top N results
+    var returnTopN = 8
     var counter = 0
     for (var [key, value] of sortedPromptList.reverse()) {
       add = true
@@ -68,13 +210,13 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
         counter += 1
       }
 
-      if (counter > 7) {
+      if (counter >= returnTopN) {
         break
       }
     }
 
     // add prompts to popover
-    for (const [prompt, val] of promptMatchList.reverse()) {
+    for (const [prompt, val] of promptMatchList) {
       if (textbox.value != prompt.replaceAll("<b>", "").replaceAll("</b>", "")) {
         const suggestionBox = document.createElement("div");
         suggestionBox.style.display = "flex"
