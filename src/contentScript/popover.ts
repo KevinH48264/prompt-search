@@ -32,11 +32,11 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
       promptDict = JSON.parse(result.prompts)
     }
 
-    console.log("IN GETPOPOVER, THIS IS PROMPTDICT: ", promptDict)
+    // console.log("IN GETPOPOVER, THIS IS PROMPTDICT: ", promptDict)
 
     var promptMatchList: any[] = []
     var promptTextList = promptText.split(' ')
-    console.log("promptTextList", promptTextList)
+    // console.log("promptTextList", promptTextList)
     var add = true;
 
     // get promptMatchList which is all the prompts that should be presented
