@@ -261,7 +261,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
                 }
                 var additionalDBprompt = [
                   DBpromptText, {
-                    "answer": DBprompt.answer,
+                    "answer": JSON.parse(DBprompt.answer),
                     "usageCount": DBprompt.usageCount,
                   }
                 ]
