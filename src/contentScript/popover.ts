@@ -192,7 +192,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
       var promptDict: { [key: string]: {
         answer: string,
         usageCount: number,
-        lastUsed: Date
+        lastUsed: number
       }} = {};
 
       if (result.prompts) {
@@ -206,7 +206,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
       
       // sort, returns oldest --> newest
       var sortedPromptList = Object.entries(promptDict).sort((a, b) => {
-        return  a[1]['lastUsed'].valueOf() - b[1]['lastUsed'].valueOf()
+        return  a[1]['lastUsed'] - b[1]['lastUsed']
       })
 
       console.log("sorted prompt list: ", sortedPromptList)

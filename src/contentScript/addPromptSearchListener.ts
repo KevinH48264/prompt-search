@@ -79,7 +79,7 @@ export const savePrompt = async (promptText : string) => {
         var promptDict: { [key: string]: {
           answer: string,
           usageCount: number,
-          lastUsed: Date
+          lastUsed: number
         }};
 
         if (result.prompts) {
@@ -98,7 +98,7 @@ export const savePrompt = async (promptText : string) => {
 export const checkFinishAnswering = (promptDict : {[key: string]: {
     answer: string,
     usageCount: number,
-    lastUsed: Date
+    lastUsed: number
   }}, promptText: string) => {
 
   
@@ -119,18 +119,19 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
               var latestAnswerDivTemp = latestAnswerDivTempCollection[tempDivCollection.childNodes.length - 2]
               var answerDivText = latestAnswerDivTemp?.childNodes[0].childNodes[1].childNodes[0].childNodes[0].childNodes[0] as HTMLElement
               // code to add the answer
-              promptDict[promptText as string] = {
+              promptDict[promptText.trim() as string] = {
                 answer: answerDivText.innerHTML,
                 usageCount: 1,
-                lastUsed: new Date()
+                lastUsed: (new Date()).valueOf()
               }
               chrome.storage.local.set({prompts: JSON.stringify(promptDict)})
+              console.log("added this prompt: ", promptText)
               console.log("updated Prompt Dict: ", promptDict)
             } catch {
               promptDict[promptText as string] = {
                 answer: "<p>Unavailable<p>",
                 usageCount: 1,
-                lastUsed: new Date()
+                lastUsed: (new Date()).valueOf()
               }
           
               chrome.storage.local.set({prompts: JSON.stringify(promptDict)})
