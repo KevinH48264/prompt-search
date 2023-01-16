@@ -199,7 +199,6 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
         promptDict = JSON.parse(result.prompts)
       }
 
-
       var promptMatchList: any[] = []
       var promptTextList = promptText.split(' ')
       var add = true;
@@ -238,71 +237,44 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
         }
       }
 
-      // add prompts to popover
-      for (const [prompt, val] of promptMatchList) {
-        if (textbox.value != prompt.replaceAll("<b>", "").replaceAll("</b>", "")) {
-          const suggestionBox = document.createElement("div");
-          suggestionBox.id = "suggestionBox"
-          suggestionBox.style.display = "flex"
-          suggestionBox.style.width = "100%"
-          suggestionBox.style.padding = "10px"
-          suggestionBox.style.opacity = "75%"
-          suggestionBox.style.backgroundColor = "rgb(32,33,35)";
-          suggestionBox.style.alignItems = "center"
-          suggestionBox.style.borderRadius = ".375rem";
+      // if counter is < returnTopN, return returnTopN - counter from DB
+      // get a list based on words, and just keep on adjusting that list?
+      console.log("promptMatchlist: ", promptMatchList)
+      // var additionalPromptsNeeded = returnTopN - counter
+      var additionalPromptsNeeded = 2
+      console.log("looking for: ", additionalPromptsNeeded)
+      // var searchQuery = promptText
+      var searchQuery = "Spain capital"
+      if (additionalPromptsNeeded > 0) {
+        fetch(`http://localhost:9090/instance/getFiltered?search=${searchQuery}&limit=${additionalPromptsNeeded}`)
+        .then((res) => res.json())
+            .then((DBprompts) => {
+              console.log("DBPrompts: ", DBprompts)
+              // split res accordingly
 
-          const iconDiv = document.createElement("div");
-          iconDiv.style.marginRight = "10px"
+              for (const DBprompt of DBprompts.instance) {
+                var additionalDBprompt = [
+                  DBprompt.prompt, {
+                    "answer": DBprompt.answer,
+                    "usageCount": DBprompt.usageCount,
+                  }
+                ]
+                promptMatchList.push(additionalDBprompt)
+              }
+              // add DBprompts to promptMatchlist
+              console.log("HERE IS THE UPDATED PROMPT MATCH LIST: ", promptMatchList)
 
-          const textWrapperDiv = document.createElement("div");
-
-          const textDiv = document.createElement("div");
-          textDiv.style.color = "white";
-          textDiv.style.fontFamily = "sans-serif";
-          textDiv.style.overflowX = "hidden";
-          textDiv.style.overflowY = "scroll";
-          textDiv.style.maxHeight = "25px";
-
-          const answerDiv = document.createElement("div");
-          answerDiv.style.fontFamily = "sans-serif";
-          answerDiv.style.overflow = "hidden";
-          answerDiv.style.marginLeft = "15px";
-          answerDiv.style.overflowX = "hidden";
-          answerDiv.style.overflowY = "scroll";
-          answerDiv.style.maxHeight = "25px";
-          answerDiv.innerHTML = val.answer;
-
-          textDiv.innerHTML = prompt
-          iconDiv.innerHTML = "🕓"
-
-          suggestionBox.onmouseover = function() {
-            suggestionBox.style.cursor = "pointer"
-            suggestionBox.style.opacity = "100%"
-            textDiv.style.maxHeight = "125px";
-            answerDiv.style.maxHeight = "125px";
-          }
-          suggestionBox.onmouseleave = function() {
-            suggestionBox.style.backgroundColor = "rgb(32,33,35)";
-            suggestionBox.style.opacity = "75%"
-            textDiv.style.maxHeight = "25px";
-            answerDiv.style.maxHeight = "25px";
-          }
-
-          suggestionBox.onclick = async function() {
-            var newText = prompt.replaceAll("<b>", "").replaceAll("</b>", "")
-            textbox.value = newText
-            editPromptText(newText)
-            reloadPopover(textbox, newText)
-            suggestionBox.remove()
-          }
-
-          textWrapperDiv.appendChild(textDiv)
-          textWrapperDiv.appendChild(answerDiv)
-          suggestionBox.appendChild(iconDiv)
-          suggestionBox.appendChild(textWrapperDiv)
-          popover.appendChild(suggestionBox)
-        }
+              // add combined DB and local prompts to popover
+              addPromptList(textbox, promptMatchList, popover)
+        }).catch(() => {
+          console.error('Error: we currently cannot access the shared database')
+          addPromptList(textbox, promptMatchList, popover)
+        });
+      } else {
+        // no need for DB
+        addPromptList(textbox, promptMatchList, popover)
       }
+      
     } else {
       let suggestionBoxElements = document.querySelectorAll("#suggestionBox");
       suggestionBoxElements.forEach((el) => {
@@ -315,3 +287,85 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
   
   return popover;
 };
+
+export const addPromptList = (textbox: HTMLTextAreaElement, promptMatchList: any[], popover: HTMLElement) => {
+  for (const [prompt, val] of promptMatchList) {
+    if (textbox.value != prompt.replaceAll("<b>", "").replaceAll("</b>", "")) {
+      const suggestionBox = document.createElement("div");
+      suggestionBox.id = "suggestionBox"
+      suggestionBox.style.display = "flex"
+      suggestionBox.style.width = "100%"
+      suggestionBox.style.padding = "10px"
+      suggestionBox.style.opacity = "75%"
+      suggestionBox.style.backgroundColor = "rgb(32,33,35)";
+      suggestionBox.style.alignItems = "center"
+      suggestionBox.style.borderRadius = ".375rem";
+
+      const iconDiv = document.createElement("div");
+      iconDiv.style.marginRight = "10px"
+
+      const textWrapperDiv = document.createElement("div");
+
+      const textDiv = document.createElement("div");
+      textDiv.style.color = "white";
+      textDiv.style.fontFamily = "sans-serif";
+      textDiv.style.overflowX = "hidden";
+      textDiv.style.overflowY = "scroll";
+      textDiv.style.maxHeight = "25px";
+
+      const answerDiv = document.createElement("div");
+      answerDiv.style.fontFamily = "sans-serif";
+      answerDiv.style.overflow = "hidden";
+      answerDiv.style.marginLeft = "15px";
+      answerDiv.style.overflowX = "hidden";
+      answerDiv.style.overflowY = "scroll";
+      answerDiv.style.maxHeight = "25px";
+      answerDiv.innerHTML = val.answer;
+
+      textDiv.innerHTML = prompt
+
+      if ("lastUsed" in val) {
+        // from local
+        iconDiv.innerHTML = "🕓"
+      } else {
+        // from DB
+        iconDiv.innerHTML = "🔍"
+      }
+      
+
+      suggestionBox.onmouseover = function() {
+        suggestionBox.style.cursor = "pointer"
+        suggestionBox.style.opacity = "100%"
+        textDiv.style.maxHeight = "125px";
+        answerDiv.style.maxHeight = "125px";
+      }
+      suggestionBox.onmouseleave = function() {
+        suggestionBox.style.backgroundColor = "rgb(32,33,35)";
+        suggestionBox.style.opacity = "75%"
+        textDiv.style.maxHeight = "25px";
+        answerDiv.style.maxHeight = "25px";
+      }
+
+      suggestionBox.onclick = async function() {
+        var newText = prompt.replaceAll("<b>", "").replaceAll("</b>", "")
+        textbox.value = newText
+        editPromptText(newText)
+        reloadPopover(textbox, newText)
+        suggestionBox.remove()
+      }
+
+      textWrapperDiv.appendChild(textDiv)
+      textWrapperDiv.appendChild(answerDiv)
+      suggestionBox.appendChild(iconDiv)
+      suggestionBox.appendChild(textWrapperDiv)
+      if (!("lastUsed" in val)) {
+        // add usage count
+        const usageDiv = document.createElement("div");
+        usageDiv.style.marginLeft = "10px"
+        usageDiv.innerHTML = "★ " + val.usageCount
+        suggestionBox.appendChild(usageDiv)
+      }
+      popover.appendChild(suggestionBox)
+    }
+  }
+}

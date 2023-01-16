@@ -1,4 +1,5 @@
 import { getPopover } from "./popover";
+// import { getPopoverAnywhere } from "./popoverAnywhere";
 
 // just for constantly checking what's the latest answer div
 var latestAnswerDiv: HTMLElement = document.createElement("div");
@@ -12,7 +13,6 @@ export const addPromptSearchListener = () => {
   // Current scenario, user has to click or start typing
 
   document.addEventListener('click', async (event) => {
-    
     var item = event.target as HTMLElement
     if (item instanceof HTMLTextAreaElement) {
       var textareabox = item as HTMLTextAreaElement
@@ -36,6 +36,18 @@ export const addPromptSearchListener = () => {
   });
 
   document.addEventListener("keydown", async (event) => {
+    // just messing with if it works on any place
+    // var targetElement = event.target as HTMLElement;
+    // var parentElement = targetElement?.parentNode;
+    // console.log(targetElement);
+    // console.log(parentElement);
+    // if (parentElement) {
+    //   getPopoverAnywhere(targetElement as HTMLElement, promptText, targetElement as HTMLElement)
+    //   // LATER: need to add attributes, remove popups as they come along like reload popup
+    // }
+
+    // messing around ends
+
     var item = event.target as HTMLElement    
     if (item instanceof HTMLTextAreaElement) {
       // save to local chrome storage
@@ -163,13 +175,12 @@ export const hidePopover = () => {
   var p = document.getElementById("popover");
 
   // TODO: put back after debugging
-  setTimeout(function(){
-    if (p) {
-      p.style.visibility = "hidden";
-      p.style.height = "0px"
-    }
-  }, 100);
-  
+  // setTimeout(function(){
+  //   if (p) {
+  //     p.style.visibility = "hidden";
+  //     p.style.height = "0px"
+  //   }
+  // }, 100);
 }
 
 // main code to show popup
