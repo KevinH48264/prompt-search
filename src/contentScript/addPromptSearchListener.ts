@@ -90,28 +90,35 @@ export const addPromptSearchListener = () => {
 
 // save prompt
 export const savePrompt = async (promptText : string) => {
-  console.log("saving prompt!")
+  // sharePrompts temporarily means save prompts and results locally
+  chrome.storage.local.get('sharePrompts', function(result) { 
+    if (result.sharePrompts == "on") {
+      console.log("saving prompt!")
 
-  // Maybe create an add to storage and have it at the end of checkFinishAnswering()?
-  // retrieving from local storage, can also just store as a variable here if we seriously cannot wait
-  chrome.storage.local.get('prompts', function(result) {
-    var promptDict: { [key: string]: {
-      answer: string,
-      usageCount: number,
-      lastUsed: Date
-    }};
+      // Maybe create an add to storage and have it at the end of checkFinishAnswering()?
+      // retrieving from local storage, can also just store as a variable here if we seriously cannot wait
+      chrome.storage.local.get('prompts', function(result) {
+        var promptDict: { [key: string]: {
+          answer: string,
+          usageCount: number,
+          lastUsed: Date
+        }};
 
-    console.log("starting to listen for when it's done")
-    if (result.prompts) {
-      console.log("was able to find result.prompts")
-      promptDict = JSON.parse(result.prompts)
+        console.log("starting to listen for when it's done")
+        if (result.prompts) {
+          console.log("was able to find result.prompts")
+          promptDict = JSON.parse(result.prompts)
+        } else {
+          console.log("was NOT able to find result.prompts")
+          promptDict = {}
+        }
+        console.log("starting to listen for when it's done using this promptDict", promptDict)
+        checkFinishAnswering(promptDict, promptText)  
+      });
     } else {
-      console.log("was NOT able to find result.prompts")
-      promptDict = {}
+      console.log("not saving prompts!")
     }
-    console.log("starting to listen for when it's done using this promptDict", promptDict)
-    checkFinishAnswering(promptDict, promptText)  
-  });
+  })
 
   hidePopover()
 }
@@ -121,7 +128,8 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
     usageCount: number,
     lastUsed: Date
   }}, promptText: string) => {
-    console.log("starting checkFinishingAnswering section")
+
+  
   // for tracking when the button appears, signifying it is done answering
   var observerButton = new MutationObserver(function(mutations) {
     for (const mutation of mutations) {

@@ -109,7 +109,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
       toggleSharePrompts.style.backgroundColor = "white";
       toggleSharePrompts.style.color = "black";
     }
-    toggleSharePrompts.innerHTML = "save & share prompts: " + sharePromptsVal;
+    toggleSharePrompts.innerHTML = "save prompts & results: " + sharePromptsVal;
 
     toggleSharePrompts.onclick = function() {
       chrome.storage.local.get('sharePrompts', function(result) { 
@@ -126,7 +126,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
           toggleSharePrompts.style.color = "white";
           chrome.storage.local.set({ sharePrompts: "on"})
         }
-        toggleSharePrompts.innerHTML = "save & share prompts: " + toggleSharePromptsVal;
+        toggleSharePrompts.innerHTML = "save prompts & results: " + toggleSharePromptsVal;
       })
     }
     toggleSharePrompts.onmouseover = function() {
@@ -160,7 +160,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
       toggleShareResponses.style.backgroundColor = "white";
       toggleShareResponses.style.color = "black";
     }
-    toggleShareResponses.innerHTML = "save & share results: " + shareResponsesVal;
+    toggleShareResponses.innerHTML = "share prompts & results: " + shareResponsesVal;
 
     toggleShareResponses.onclick = function() {
       chrome.storage.local.get('shareResponses', function(result) { 
@@ -175,7 +175,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
           toggleShareResponses.style.color = "white";
         }
         chrome.storage.local.set({shareResponses: shareResponsesVal})
-        toggleShareResponses.innerHTML = "save & share results: " + shareResponsesVal;
+        toggleShareResponses.innerHTML = "share prompts & results: " + shareResponsesVal;
       })
     }
     toggleShareResponses.onmouseover = function() {
