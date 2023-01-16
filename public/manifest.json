@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+
+  "name": "Prompt Search",
+  "description": "Pull up recent and relevant ChatGPT prompts as you're typing",
+  "version": "0.0.0.1",
+
+  "options_ui": {
+    "page": "options.html"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chat.openai.com/*"],
+      "js": ["js/content_script.js"],
+      "run_at": "document_end"
+    }
+  ],
+
+  "background": {
+    "service_worker": "js/background.js"
+  },
+
+  "permissions": ["storage", "webNavigation"]
+}
