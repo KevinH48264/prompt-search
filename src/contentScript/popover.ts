@@ -43,18 +43,13 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
     // TODO: sort promptDict based on how recent the entry was
     // TODO: stop adding once you have 8
     
-    // sort
+    // sort, returns oldest --> newest
     var sortedPromptList = Object.entries(promptDict).sort((a, b) => {
-      return b[1]['lastUsed'].valueOf() - a[1]['lastUsed'].valueOf()
+      return  a[1]['lastUsed'].valueOf() - b[1]['lastUsed'].valueOf()
     })
 
-    // stored: [write me an essay about pyramids of giza, ...]
-    // search: write me essay
-    // 8 prompts that fully match words, sorted by most used
-    // x = promptText (search)
-
     var counter = 0
-    for (var [key, value] of sortedPromptList) {
+    for (var [key, value] of sortedPromptList.reverse()) {
       add = true
       for (const word of promptTextList) {
         if (word && word != " ") {
@@ -79,7 +74,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
     }
 
     // add prompts to popover
-    for (const [prompt, val] of promptMatchList) {
+    for (const [prompt, val] of promptMatchList.reverse()) {
       if (textbox.value != prompt.replaceAll("<b>", "").replaceAll("</b>", "")) {
         const suggestionBox = document.createElement("div");
         suggestionBox.style.display = "flex"
