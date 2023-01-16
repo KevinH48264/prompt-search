@@ -2,31 +2,10 @@ import { getPopover } from "./popover";
 
 // just for constantly checking what's the latest answer div
 var latestAnswerDiv: HTMLElement = document.createElement("div");
-var observer: MutationObserver = new MutationObserver(function(mutations) {
-  for (const mutation of mutations) {
-    // console.log("mutation: ", mutation)
-    if (mutation.type === "childList") {
-      mutation.addedNodes.forEach(node => {
-        var addedNode = node as HTMLElement;
-        console.log("new node: ", addedNode)
-        if (addedNode.className == 'w-full border-b border-black/10 dark:border-gray-900/50 text-gray-800 dark:text-gray-100 group bg-gray-50 dark:bg-[#444654]') {
-            latestAnswerDiv = addedNode;
-            console.log("UPDATE latest answer div: ", latestAnswerDiv)
-        }
-      });
-    }
-  };
-});
-
-var config = {
-  childList: true,
-  subtree: true,
-  attributes: true,
-};
+var promptText = ""
 
 export const addPromptSearchListener = () => {
   console.log("Starting CSS Reload Edits!")
-  var promptText = ""
 
   // TODO: fix so that it automatically pops up when you navigate to a page
   // Problem: even if URL changes, the textarea doesn't always change immediately
@@ -93,7 +72,6 @@ export const savePrompt = async (promptText : string) => {
   // sharePrompts temporarily means save prompts and results locally
   chrome.storage.local.get('sharePrompts', function(result) { 
     if (result.sharePrompts == "on") {
-      console.log("saving prompt!")
 
       // Maybe create an add to storage and have it at the end of checkFinishAnswering()?
       // retrieving from local storage, can also just store as a variable here if we seriously cannot wait
@@ -104,19 +82,13 @@ export const savePrompt = async (promptText : string) => {
           lastUsed: Date
         }};
 
-        console.log("starting to listen for when it's done")
         if (result.prompts) {
-          console.log("was able to find result.prompts")
           promptDict = JSON.parse(result.prompts)
         } else {
-          console.log("was NOT able to find result.prompts")
           promptDict = {}
         }
-        console.log("starting to listen for when it's done using this promptDict", promptDict)
         checkFinishAnswering(promptDict, promptText)  
       });
-    } else {
-      console.log("not saving prompts!")
     }
   })
 
@@ -138,7 +110,6 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
           var addedNode = mutation.addedNodes[i] as HTMLElement;
           if (addedNode.tagName === "svg") {
             try {
-              console.log("latestAnswerDiv upon computing", latestAnswerDiv)
 
               // temporary because this seems to be the only element that updates properly
               var tempAnswerDivText = document.getElementById('__next') as HTMLElement
@@ -154,9 +125,8 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
                 lastUsed: new Date()
               }
               chrome.storage.local.set({prompts: JSON.stringify(promptDict)})
-              console.log("added custom prompt, updated dict: ", promptDict)
+              console.log("updated Prompt Dict: ", promptDict)
             } catch {
-              console.log("something like a div didn't have enough nodes or something")
               promptDict[promptText as string] = {
                 answer: "<p>Unavailable<p>",
                 usageCount: 1,
@@ -192,15 +162,17 @@ export const hidePopover = () => {
   var p = document.getElementById("popover");
 
   // TODO: put back after debugging
-  // if (p) {
-  //   p.style.visibility = "hidden";
-  //   p.style.height = "0px"
-  // }
+  setTimeout(function(){
+    if (p) {
+      p.style.visibility = "hidden";
+      p.style.height = "0px"
+    }
+  }, 100);
+  
 }
 
 // main code to show popup
 export const reloadPopover = (textbox : HTMLTextAreaElement, promptText : string) => {
-  // console.log("RELOADING POPOVER")
   var p = document.getElementById("popover");
   if (p) {
     p.remove()
@@ -232,4 +204,8 @@ export const reloadPopover = (textbox : HTMLTextAreaElement, promptText : string
   textbox.onblur = function() {
     hidePopover()
   };
+}
+
+export const editPromptText = (edit : string) => {
+  promptText = edit
 }

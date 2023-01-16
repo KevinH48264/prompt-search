@@ -1,8 +1,7 @@
-import { reloadPopover } from "./addPromptSearchListener";
+import { editPromptText, reloadPopover } from "./addPromptSearchListener";
 
 export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) => {
   // Popover element
-  console.log("getting popover")
 
   const popover = document.createElement("div");
   popover.style.width = textbox.style.width;
@@ -37,7 +36,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
     toggleShowDisplay.style.borderRadius = "1rem";
     toggleShowDisplay.style.paddingLeft = "10px";
     toggleShowDisplay.style.paddingRight = "10px";
-    toggleShowDisplay.style.height = "25px";
+    toggleShowDisplay.style.height = "auto";
     toggleShowDisplay.style.marginRight = "10px"
     toggleShowDisplay.className = "temp"
 
@@ -74,7 +73,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
         chrome.storage.local.set({showDisplay: showDisplayVal})
         toggleShowDisplay.innerHTML = "show display: " + showDisplayVal;
     
-        getPopover(textbox, promptText)
+        reloadPopover(textbox, promptText)
       })
     }
     toggleShowDisplay.onmouseover = function() {
@@ -90,7 +89,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
     toggleSharePrompts.style.borderRadius = "1rem";
     toggleSharePrompts.style.paddingLeft = "10px";
     toggleSharePrompts.style.paddingRight = "10px";
-    toggleSharePrompts.style.height = "25px";
+    toggleSharePrompts.style.height = "auto";
     toggleSharePrompts.style.marginRight = "10px"
 
     // show showDisplay value based on chrome storage
@@ -114,7 +113,6 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
     toggleSharePrompts.onclick = function() {
       chrome.storage.local.get('sharePrompts', function(result) { 
         var toggleSharePromptsVal = result.sharePrompts
-        console.log("clicked! ", toggleSharePromptsVal)
         if(toggleSharePromptsVal=="on"){
           toggleSharePromptsVal="off";
           toggleSharePrompts.style.backgroundColor = "white";
@@ -141,7 +139,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
     toggleShareResponses.style.borderRadius = "1rem";
     toggleShareResponses.style.paddingLeft = "10px";
     toggleShareResponses.style.paddingRight = "10px";
-    toggleShareResponses.style.height = "25px";
+    toggleShareResponses.style.height = "auto";
     toggleShareResponses.style.marginRight = "10px"
 
     // show showDisplay value based on chrome storage
@@ -190,7 +188,6 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
 
   // load in the suggestions
   chrome.storage.local.get(['prompts', 'showDisplay'], function(result) {
-    console.log("RESULTS HERE: ", result)
     if ('showDisplay' in result && result.showDisplay == "on") {
       var promptDict: { [key: string]: {
         answer: string,
@@ -211,6 +208,8 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
       var sortedPromptList = Object.entries(promptDict).sort((a, b) => {
         return  a[1]['lastUsed'].valueOf() - b[1]['lastUsed'].valueOf()
       })
+
+      console.log("sorted prompt list: ", sortedPromptList)
 
       // return top N results
       var returnTopN = 8
@@ -292,6 +291,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
           suggestionBox.onclick = async function() {
             var newText = prompt.replaceAll("<b>", "").replaceAll("</b>", "")
             textbox.value = newText
+            editPromptText(newText)
             reloadPopover(textbox, newText)
             suggestionBox.remove()
           }
@@ -304,7 +304,6 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
         }
       }
     } else {
-      console.log("SHOW DISPLAY WAS OFF!")
       let suggestionBoxElements = document.querySelectorAll("#suggestionBox");
       suggestionBoxElements.forEach((el) => {
         el.remove()
