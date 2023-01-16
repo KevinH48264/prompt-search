@@ -2,6 +2,22 @@ import { getPopover } from "./popover";
 
 // just for constantly checking what's the latest answer div
 var latestAnswerDiv: HTMLElement = document.createElement("div");
+var observer: MutationObserver = new MutationObserver(function(mutations) {
+  for (const mutation of mutations) {
+    // console.log("mutation: ", mutation)
+    if (mutation.type === "childList") {
+      mutation.addedNodes.forEach(node => {
+        var addedNode = node as HTMLElement;
+        console.log("new node: ", addedNode)
+        if (addedNode.className == 'w-full border-b border-black/10 dark:border-gray-900/50 text-gray-800 dark:text-gray-100 group bg-gray-50 dark:bg-[#444654]') {
+            latestAnswerDiv = addedNode;
+            console.log("UPDATE latest answer div: ", latestAnswerDiv)
+        }
+      });
+    }
+  };
+});
+
 var config = {
   childList: true,
   subtree: true,
@@ -71,31 +87,22 @@ export const addPromptSearchListener = () => {
   });
 
   // reload observer too
-  // var textboxEl = document.getElementsByClassName('overflow-hidden w-full h-full relative')[0] as Node
+  var textboxEl = document.getElementsByClassName('flex flex-col items-center text-sm h-full dark:bg-gray-800')[0] as Node
   // var textboxEl = document.getElementsByClassName('flex flex-col items-center text-sm h-full dark:bg-gray-800')[0] as Node
-  var textboxEl = document.getElementsByClassName('overflow-hidden w-full h-full relative')[0] as Node
+  // var textboxEl = document.getElementsByClassName('overflow-hidden w-full h-full relative')[0] as Node
   restartLatestAnswerDiv(textboxEl as HTMLElement)
 } 
 
 export const restartLatestAnswerDiv = (checkElement : HTMLElement) => {
   console.log("restarting")
   // for tracking the answer
-  var observer = new MutationObserver(function(mutations) {
-    for (const mutation of mutations) {
-      console.log("mutation: ", mutation)
-      if (mutation.type === "childList") {
-        for (var i = 0; i < mutation.addedNodes.length; i++) {
-          var addedNode = mutation.addedNodes[i] as HTMLElement;
-          if (addedNode.className == 'w-full border-b border-black/10 dark:border-gray-900/50 text-gray-800 dark:text-gray-100 group bg-gray-50 dark:bg-[#444654]') {
-            latestAnswerDiv = addedNode;
-            console.log("UPDATE latest answer div: ", latestAnswerDiv)
-          }
-        }
-      }
-    };
-  });
-  var textboxEl = document.getElementsByClassName('overflow-hidden w-full h-full relative')[0] as Node
-  observer.observe(textboxEl, config);
+
+  var temp = document.getElementById('__next') as HTMLElement
+  // at minimum, validate that document is wrong. VALIDATED THAT DOCUMENT IS INDEED NOT UPDATING
+  // validate: what mutations does it catch when you flip?
+  console.log("RESTART TEMP: ", temp.childNodes)
+
+  observer.observe(temp, config);
 }
 
 // save prompt
@@ -145,7 +152,18 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
           if (addedNode.tagName === "svg") {
             try {
               console.log("latestAnswerDiv upon computing", latestAnswerDiv)
-              var answerDivText = latestAnswerDiv.childNodes[0].childNodes[1].childNodes[0].childNodes[0].childNodes[0] as HTMLElement
+
+              // temporary because this seems to be the only element that updates properly
+              var tempAnswerDivText = document.getElementById('__next') as HTMLElement
+              console.log(tempAnswerDivText)
+              var tempMain = tempAnswerDivText.childNodes[1].childNodes[0].childNodes[0].childNodes[0]
+              console.log(tempMain)
+              var tempDivCollection = tempMain.childNodes[0].childNodes[0].childNodes[0]
+              console.log(tempDivCollection)
+              var latestAnswerDivTempCollection = tempDivCollection.childNodes
+              console.log(latestAnswerDivTempCollection)
+              var latestAnswerDivTemp = latestAnswerDivTempCollection[tempDivCollection.childNodes.length - 2]
+              var answerDivText = latestAnswerDivTemp?.childNodes[0].childNodes[1].childNodes[0].childNodes[0].childNodes[0] as HTMLElement
               // code to add the answer
               promptDict[promptText as string] = {
                 answer: answerDivText.innerHTML,
@@ -205,7 +223,7 @@ export const reloadPopover = (textbox : HTMLTextAreaElement, promptText : string
   textboxWrapper?.insertBefore(p, textboxMidWrapper);
   p.style.visibility = "visible";
 
-  var textboxEl = textbox.ownerDocument.getElementsByClassName('overflow-hidden w-full h-full relative')[0] as Node
+  var textboxEl = textbox.ownerDocument.getElementsByClassName('flex flex-col items-center text-sm h-full dark:bg-gray-800')[0] as Node
   restartLatestAnswerDiv(textboxEl as HTMLElement)
 
   if (document.activeElement === textbox) {
