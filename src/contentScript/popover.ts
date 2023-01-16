@@ -240,11 +240,11 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
       // if counter is < returnTopN, return returnTopN - counter from DB
       // get a list based on words, and just keep on adjusting that list?
       console.log("promptMatchlist: ", promptMatchList)
-      // var additionalPromptsNeeded = returnTopN - counter
-      var additionalPromptsNeeded = 2
+      var additionalPromptsNeeded = returnTopN - counter
+      // var additionalPromptsNeeded = 2
       console.log("looking for: ", additionalPromptsNeeded)
-      // var searchQuery = promptText
-      var searchQuery = "Spain capital"
+      var searchQuery = promptText
+      // var searchQuery = "Spain capital"
       if (additionalPromptsNeeded > 0) {
         fetch(`http://localhost:9090/instance/getFiltered?search=${searchQuery}&limit=${additionalPromptsNeeded}`)
         .then((res) => res.json())
