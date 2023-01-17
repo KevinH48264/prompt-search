@@ -4,6 +4,7 @@ import { getPopover } from "./popover";
 // just for constantly checking what's the latest answer div
 var latestAnswerDiv: HTMLElement = document.createElement("div");
 var promptText = ""
+var textareabox: HTMLTextAreaElement = document.createElement("textarea")
 
 export const addPromptSearchListener = () => {
   console.log("Starting CSS Reload Edits!")
@@ -15,7 +16,7 @@ export const addPromptSearchListener = () => {
   document.addEventListener('click', async (event) => {
     var item = event.target as HTMLElement
     if (item instanceof HTMLTextAreaElement) {
-      var textareabox = item as HTMLTextAreaElement
+      textareabox = item as HTMLTextAreaElement
       if (textareabox.value) {
         promptText = textareabox.value as string;
       } else {
@@ -49,33 +50,35 @@ export const addPromptSearchListener = () => {
     // messing around ends
 
     var item = event.target as HTMLElement    
-    if (item instanceof HTMLTextAreaElement) {
-      // save to local chrome storage
-      var textareabox = item as HTMLTextAreaElement
-      if (textareabox.value) {
-        if (event.key != "Backspace") {
-          promptText = textareabox.value + event.key as string;
-        } else {
-          promptText = textareabox.value.substring(0, textareabox.value.length - 1) as string;
+    setTimeout(function(){      
+      if (item instanceof HTMLTextAreaElement) {
+        // save to local chrome storage
+        textareabox = item as HTMLTextAreaElement
+        if (textareabox.value) {
+          if (event.key != "Backspace") {
+            promptText = textareabox.value as string;
+          } else {
+            promptText = textareabox.value.substring(0, textareabox.value.length - 1) as string;
+          }
+        }
+
+        // only reload if you've typed at least one word?
+        if (event.key == " ") {
+          reloadPopover(item, promptText)
+        }
+        // if you hit backspace on a space / delete a word or you cleared everything out
+        if (event.key == "Backspace" && (textareabox.value[textareabox.value.length - 1] == " " || textareabox.value.length == 1)) {
+          reloadPopover(item, promptText)
         }
       }
 
-      // only reload if you've typed at least one word?
-      if (event.key == " ") {
-        reloadPopover(item, promptText)
+      // save in local storage
+      if (event.key == "Enter") {
+        savePrompt(promptText)
+        promptText = ""
+        hidePopover()
       }
-      // if you hit backspace on a space / delete a word or you cleared everything out
-      if (event.key == "Backspace" && (textareabox.value[textareabox.value.length - 1] == " " || textareabox.value.length == 1)) {
-        reloadPopover(item, promptText)
-      }
-    }
-
-    // save in local storage
-    if (event.key == "Enter") {
-      savePrompt(promptText)
-      promptText = ""
-      hidePopover()
-    }
+    }, 100)
   });
 } 
 
@@ -84,7 +87,10 @@ export const savePrompt = async (promptText : string) => {
   // sharePrompts temporarily means save prompts and results locally
   chrome.storage.local.get('sharePrompts', function(result) { 
     if (result.sharePrompts == "on") {
-
+      if (textareabox.value) {
+        promptText = textareabox.value
+      }
+      
       // Maybe create an add to storage and have it at the end of checkFinishAnswering()?
       // retrieving from local storage, can also just store as a variable here if we seriously cannot wait
       chrome.storage.local.get('prompts', function(result) {
@@ -178,12 +184,12 @@ export const hidePopover = () => {
   var p = document.getElementById("popover");
 
   // TODO: put back after debugging
-  // setTimeout(function(){
-  //   if (p) {
-  //     p.style.visibility = "hidden";
-  //     p.style.height = "0px"
-  //   }
-  // }, 100);
+  setTimeout(function(){
+    if (p) {
+      p.style.visibility = "hidden";
+      p.style.height = "0px"
+    }
+  }, 100);
 }
 
 // main code to show popup
@@ -229,25 +235,44 @@ export const addPromptToDB = (promptText : string, answerText : string) => {
   // shareResponses is temporary chrome storage for share prompts and results publicly
   chrome.storage.local.get('shareResponses', function(result) { 
     if (result.shareResponses == "on") {
-      console.log("ADDING PROMPT TO DB!")
-      // how to check if this prompt already exists?
+      console.log("ADDING PROMPT TO DB! Prompttext: ", promptText)
+      // TODO 1: how to check if this prompt already exists?, try updating usageCount by 1, otherwise create
+      
+      fetch(`http://localhost:9090/instance/getPrompt?prompt=${promptText}`).then((res) => res.json())
+      .then((res) => {
+        console.log("data for get", res)
+        if (res && res.message != 'not found') {
+          // update
+          var paramsUpdate = {prompt: promptText, answer: res.instance.answer, usageCount: res.instance.usageCount + 1};
+          var optionsUpdate = {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(paramsUpdate),
+          };
+          fetch(`http://localhost:9090/instance/update/${res.instance._id}`, optionsUpdate).then((res) => res.json())
+          .then((res) => {
+            console.log("res during update", res)
+          });
+        } else {
+          // else: add it as a new prompt
+          var paramsCreate = {prompt: promptText, answer: answerText, usageCount: 1};
+          var optionsCreate = {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(paramsCreate),
+          };
+          fetch(`http://localhost:9090/instance/create`, optionsCreate).then((res) => res.json())
+          .then((res) => {
+            console.log("res for create", res)
+          });
+          }
+      });
 
-      // else: add it as a new prompt
-      const params = {prompt: promptText, answer: answerText, usageCount: 1};
-      console.log("PARAMS: ", params)
-      console.log("jsonify", JSON.stringify(params))
-      console.log("parsed: ", JSON.parse(answerText))
-      const options = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(params),
-      };
-      fetch(`http://localhost:9090/instance/create`, options).then((res) => res.json())
-        .then((res) => {
-          console.log("res", res)
-        });
+      
     }
   })
 }

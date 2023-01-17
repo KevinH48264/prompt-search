@@ -295,8 +295,9 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
 };
 
 export const addPromptList = (textbox: HTMLTextAreaElement, promptMatchList: any[], popover: HTMLElement) => {
+  var promptsUsed = []
   for (const [prompt, val] of promptMatchList) {
-    if (textbox.value != prompt.replaceAll("<b>", "").replaceAll("</b>", "")) {
+    if (!(prompt in promptsUsed) && textbox.value != prompt.replaceAll("<b>", "").replaceAll("</b>", "")) {
       const suggestionBox = document.createElement("div");
       suggestionBox.id = "suggestionBox"
       suggestionBox.style.display = "flex"
@@ -355,9 +356,32 @@ export const addPromptList = (textbox: HTMLTextAreaElement, promptMatchList: any
       suggestionBox.onclick = async function() {
         var newText = prompt.replaceAll("<b>", "").replaceAll("</b>", "")
         textbox.value = newText
+        suggestionBox.remove()
+
+        // update
+        fetch(`http://localhost:9090/instance/getPrompt?prompt=${newText}`).then((res) => res.json())
+        .then((res) => {
+          console.log("data for get", res)
+          if (res && res.message != 'not found') {
+            // update
+            var paramsUpdate = {prompt: newText, answer: res.instance.answer, usageCount: res.instance.usageCount + 1};
+            var optionsUpdate = {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(paramsUpdate),
+            };
+            fetch(`http://localhost:9090/instance/update/${res.instance._id}`, optionsUpdate).then((res) => res.json())
+            .then((res) => {
+              console.log("res during update", res)
+            });
+          }
+        })
+        
         editPromptText(newText)
         reloadPopover(textbox, newText)
-        suggestionBox.remove()
+        
       }
 
       textWrapperDiv.appendChild(textDiv)
@@ -372,6 +396,7 @@ export const addPromptList = (textbox: HTMLTextAreaElement, promptMatchList: any
         suggestionBox.appendChild(usageDiv)
       }
       popover.appendChild(suggestionBox)
+      promptsUsed.push(prompt)
     }
   }
 }
