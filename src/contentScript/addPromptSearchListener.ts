@@ -26,6 +26,11 @@ export const addPromptSearchListener = () => {
       reloadPopover(item, promptText)
     }
 
+    var body = document.getElementsByClassName('flex flex-col items-center text-sm h-full dark:bg-gray-800')[0]
+    if (body.contains(item)) {
+      hidePopover()
+    }
+
     // TODO: how to figure out when something is clicked
     // save prompt in local storage
     // var button = document.getElementsByClassName('flex flex-col w-full py-2 flex-grow md:py-3 md:pl-4 relative border border-black/10 bg-white dark:border-gray-900/50 dark:text-white dark:bg-gray-700 rounded-md shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:shadow-[0_0_15px_rgba(0,0,0,0.10)]')
@@ -144,8 +149,6 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
               }
               chrome.storage.local.set({prompts: JSON.stringify(promptDict)})
               addPromptToDB(promptText.trim() as string, JSON.stringify(answerDivText.innerHTML))
-              console.log("added this prompt: ", promptText)
-              console.log("updated Prompt Dict: ", promptDict)
             } catch {
               promptDict[promptText.trim() as string] = {
                 answer: "<p>Unavailable<p>",
@@ -155,7 +158,6 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
           
               chrome.storage.local.set({prompts: JSON.stringify(promptDict)})
               addPromptToDB(promptText.trim() as string, "<p>Unavailable<p>")
-
             }
           }
         }
@@ -220,11 +222,6 @@ export const reloadPopover = (textbox : HTMLTextAreaElement, promptText : string
   textbox.onfocus = function() {
     showPopover()
   };
-
-  // textbox is clicked away, dismiss popover
-  textbox.onblur = function() {
-    hidePopover()
-  };
 }
 
 export const editPromptText = (edit : string) => {
@@ -235,12 +232,8 @@ export const addPromptToDB = (promptText : string, answerText : string) => {
   // shareResponses is temporary chrome storage for share prompts and results publicly
   chrome.storage.local.get('shareResponses', function(result) { 
     if (result.shareResponses == "on") {
-      console.log("ADDING PROMPT TO DB! Prompttext: ", promptText)
-      // TODO 1: how to check if this prompt already exists?, try updating usageCount by 1, otherwise create
-      
       fetch(`http://localhost:9090/instance/getPrompt?prompt=${promptText}`).then((res) => res.json())
       .then((res) => {
-        console.log("data for get", res)
         if (res && res.message != 'not found') {
           // update
           var paramsUpdate = {prompt: promptText, answer: res.instance.answer, usageCount: res.instance.usageCount + 1};
@@ -253,7 +246,7 @@ export const addPromptToDB = (promptText : string, answerText : string) => {
           };
           fetch(`http://localhost:9090/instance/update/${res.instance._id}`, optionsUpdate).then((res) => res.json())
           .then((res) => {
-            console.log("res during update", res)
+            // console.log("DB update: ", res)
           });
         } else {
           // else: add it as a new prompt
@@ -267,7 +260,7 @@ export const addPromptToDB = (promptText : string, answerText : string) => {
           };
           fetch(`http://localhost:9090/instance/create`, optionsCreate).then((res) => res.json())
           .then((res) => {
-            console.log("res for create", res)
+            // console.log("DB create: ", res)
           });
           }
       });

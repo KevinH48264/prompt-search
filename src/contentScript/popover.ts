@@ -208,8 +208,6 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
         return  a[1]['lastUsed'] - b[1]['lastUsed']
       })
 
-      console.log("sorted prompt list: ", sortedPromptList)
-
       // return top N results
       var returnTopN = 8
       var counter = 0
@@ -239,12 +237,8 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
 
       // if counter is < returnTopN, return returnTopN - counter from DB
       // get a list based on words, and just keep on adjusting that list?
-      console.log("promptMatchlist: ", promptMatchList)
       var additionalPromptsNeeded = returnTopN - counter
-      // var additionalPromptsNeeded = 2
-      console.log("looking for: ", additionalPromptsNeeded)
       var searchQuery = promptText
-      // var searchQuery = "Spain capital"
       if (additionalPromptsNeeded > 0) {
         fetch(`http://localhost:9090/instance/getFiltered?search=${searchQuery}&limit=${additionalPromptsNeeded}`)
         .then((res) => res.json())
@@ -267,8 +261,6 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
                 ]
                 promptMatchList.push(additionalDBprompt)
               }
-              // add DBprompts to promptMatchlist
-              console.log("HERE IS THE UPDATED PROMPT MATCH LIST: ", promptMatchList)
 
               // add combined DB and local prompts to popover
               addPromptList(textbox, promptMatchList, popover)
@@ -361,7 +353,6 @@ export const addPromptList = (textbox: HTMLTextAreaElement, promptMatchList: any
         // update
         fetch(`http://localhost:9090/instance/getPrompt?prompt=${newText}`).then((res) => res.json())
         .then((res) => {
-          console.log("data for get", res)
           if (res && res.message != 'not found') {
             // update
             var paramsUpdate = {prompt: newText, answer: res.instance.answer, usageCount: res.instance.usageCount + 1};
@@ -374,7 +365,6 @@ export const addPromptList = (textbox: HTMLTextAreaElement, promptMatchList: any
             };
             fetch(`http://localhost:9090/instance/update/${res.instance._id}`, optionsUpdate).then((res) => res.json())
             .then((res) => {
-              console.log("res during update", res)
             });
           }
         })
