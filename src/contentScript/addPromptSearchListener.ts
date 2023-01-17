@@ -5,6 +5,7 @@ import { getPopover } from "./popover";
 var latestAnswerDiv: HTMLElement = document.createElement("div");
 var promptText = ""
 var textareabox: HTMLTextAreaElement = document.createElement("textarea")
+export const URL = "https://auto-gpt.herokuapp.com"
 
 export const addPromptSearchListener = () => {
   console.log("Starting CSS Reload Edits!")
@@ -232,7 +233,7 @@ export const addPromptToDB = (promptText : string, answerText : string) => {
   // shareResponses is temporary chrome storage for share prompts and results publicly
   chrome.storage.local.get('shareResponses', function(result) { 
     if (result.shareResponses == "on") {
-      fetch(`http://localhost:9090/instance/getPrompt?prompt=${promptText}`).then((res) => res.json())
+      fetch(`${URL}/instance/getPrompt?prompt=${promptText}`).then((res) => res.json())
       .then((res) => {
         if (res && res.message != 'not found') {
           // update
@@ -244,7 +245,7 @@ export const addPromptToDB = (promptText : string, answerText : string) => {
             },
             body: JSON.stringify(paramsUpdate),
           };
-          fetch(`http://localhost:9090/instance/update/${res.instance._id}`, optionsUpdate).then((res) => res.json())
+          fetch(`${URL}/instance/update/${res.instance._id}`, optionsUpdate).then((res) => res.json())
           .then((res) => {
             // console.log("DB update: ", res)
           });
@@ -258,7 +259,7 @@ export const addPromptToDB = (promptText : string, answerText : string) => {
             },
             body: JSON.stringify(paramsCreate),
           };
-          fetch(`http://localhost:9090/instance/create`, optionsCreate).then((res) => res.json())
+          fetch(`${URL}/instance/create`, optionsCreate).then((res) => res.json())
           .then((res) => {
             // console.log("DB create: ", res)
           });

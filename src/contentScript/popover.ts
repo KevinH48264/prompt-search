@@ -1,4 +1,4 @@
-import { editPromptText, reloadPopover } from "./addPromptSearchListener";
+import { editPromptText, reloadPopover, URL } from "./addPromptSearchListener";
 
 export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) => {
   // Popover element
@@ -240,7 +240,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
       var additionalPromptsNeeded = returnTopN - counter
       var searchQuery = promptText
       if (additionalPromptsNeeded > 0) {
-        fetch(`http://localhost:9090/instance/getFiltered?search=${searchQuery}&limit=${additionalPromptsNeeded}`)
+        fetch(`${URL}/instance/getFiltered?search=${searchQuery}&limit=${additionalPromptsNeeded}`)
         .then((res) => res.json())
             .then((DBprompts) => {
               // getting responses from DB
@@ -351,7 +351,7 @@ export const addPromptList = (textbox: HTMLTextAreaElement, promptMatchList: any
         suggestionBox.remove()
 
         // update
-        fetch(`http://localhost:9090/instance/getPrompt?prompt=${newText}`).then((res) => res.json())
+        fetch(`${URL}/instance/getPrompt?prompt=${newText}`).then((res) => res.json())
         .then((res) => {
           if (res && res.message != 'not found') {
             // update
@@ -363,7 +363,7 @@ export const addPromptList = (textbox: HTMLTextAreaElement, promptMatchList: any
               },
               body: JSON.stringify(paramsUpdate),
             };
-            fetch(`http://localhost:9090/instance/update/${res.instance._id}`, optionsUpdate).then((res) => res.json())
+            fetch(`${URL}/instance/update/${res.instance._id}`, optionsUpdate).then((res) => res.json())
             .then((res) => {
             });
           }

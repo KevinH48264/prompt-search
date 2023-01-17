@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
 
-  "name": "Prompt Search",
-  "description": "Pull up recent and relevant ChatGPT prompts as you're typing",
+  "name": "ChatGPT Prompts Search & Share",
+  "description": "Search and share recent and relevant ChatGPT prompts as you're typing",
   "version": "0.0.0.1",
 
   "options_ui": {
