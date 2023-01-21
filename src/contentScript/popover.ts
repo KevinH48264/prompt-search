@@ -243,29 +243,37 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
         fetch(`${URL}/instance/getFiltered?search=${searchQuery}&limit=${additionalPromptsNeeded}`)
         .then((res) => res.json())
             .then((DBprompts) => {
+              console.log('DBprompts', DBprompts)
               // getting responses from DB
               for (const DBprompt of DBprompts.instance) {
                 var DBpromptText = DBprompt.prompt
+                console.log("DBprompt", DBprompt, DBpromptText)
                 for (const word of promptTextList) {
+                  console.log("word", word)
                   if (word && word != " ") {
                     var wordIdx = DBpromptText.indexOf(word)
                     // add bold
                     DBpromptText = DBpromptText.substring(0, wordIdx)+ "<b>"+ DBpromptText.substring(wordIdx, wordIdx + word.length) + "</b>" + DBpromptText.substring(wordIdx + word.length);
                   }
                 }
+                console.log("out of for loop", DBprompt.answer)
+                console.log("JSON.parse(DBprompt.answer)", JSON.parse(DBprompt.answer))
+                console.log("DBprompt.usageCount", DBprompt.usageCount)
                 var additionalDBprompt = [
                   DBpromptText, {
                     "answer": JSON.parse(DBprompt.answer),
                     "usageCount": DBprompt.usageCount,
                   }
                 ]
+                console.log("here")
                 promptMatchList.push(additionalDBprompt)
               }
 
+              console.log("end")
               // add combined DB and local prompts to popover
               addPromptList(textbox, promptMatchList, popover)
         }).catch(() => {
-          console.error('Error: we currently cannot access the shared database')
+          console.error('Error: we currently cannot access the shared database here')
           addPromptList(textbox, promptMatchList, popover)
         });
       } else {
@@ -281,7 +289,7 @@ export const getPopover = (textbox : HTMLTextAreaElement, promptText : string) =
     }
   })
 
-  popover.id = "popover";
+  popover.id = "popover-prompt-search";
   
   return popover;
 };

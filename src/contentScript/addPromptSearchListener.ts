@@ -5,7 +5,7 @@ import { getPopover } from "./popover";
 var latestAnswerDiv: HTMLElement = document.createElement("div");
 var promptText = ""
 var textareabox: HTMLTextAreaElement = document.createElement("textarea")
-export const URL = "https://auto-gpt.herokuapp.com"
+export const URL = "https://prompts-backend.herokuapp.com"
 
 export const addPromptSearchListener = () => {
   console.log("Starting CSS Reload Edits!")
@@ -175,7 +175,7 @@ export const checkFinishAnswering = (promptDict : {[key: string]: {
 
 // show popover
 export const showPopover = () => {
-  var p = document.getElementById("popover");
+  var p = document.getElementById("popover-prompt-search");
   if (p) {
     p.style.visibility = "visible";
     p.style.height = "auto"
@@ -184,7 +184,7 @@ export const showPopover = () => {
 
 // hide popover
 export const hidePopover = () => {
-  var p = document.getElementById("popover");
+  var p = document.getElementById("popover-prompt-search");
 
   // TODO: put back after debugging
   setTimeout(function(){
@@ -197,7 +197,7 @@ export const hidePopover = () => {
 
 // main code to show popup
 export const reloadPopover = (textbox : HTMLTextAreaElement, promptText : string) => {
-  var p = document.getElementById("popover");
+  var p = document.getElementById("popover-prompt-search");
   if (p) {
     p.remove()
   }
@@ -265,8 +265,6 @@ export const addPromptToDB = (promptText : string, answerText : string) => {
           });
           }
       });
-
-      
     }
   })
 }

@@ -3,7 +3,7 @@
 
   "name": "ChatGPT Prompts Search & Share",
   "description": "Search and share recent and relevant ChatGPT prompts as you're typing",
-  "version": "0.0.0.1",
+  "version": "0.0.0.3",
 
   "options_ui": {
     "page": "options.html"
@@ -19,7 +19,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["https://chat.openai.com/*"],
       "js": ["js/content_script.js"],
       "run_at": "document_end"
     }
@@ -29,5 +29,5 @@
     "service_worker": "js/background.js"
   },
 
-  "permissions": ["storage", "webNavigation"]
+  "permissions": ["storage"]
 }
